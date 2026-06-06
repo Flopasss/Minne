@@ -86,12 +86,10 @@ public class Commands {
                                 MinecraftServer server = source.getServer();
 
                                 if (player.getUUID().equals(target.getUUID())) {
-                                    source.sendSuccess(
-                                        () ->
-                                            Component.literal(
-                                                "You cannot be your own partner"
-                                            ),
-                                        false
+                                    source.sendFailure(
+                                        Component.literal(
+                                            "You cannot be your own partner"
+                                        )
                                     );
 
                                     return 1;
@@ -202,12 +200,10 @@ public class Commands {
                             player.getUUID()
                         );
                         if (partnerUUID == null) {
-                            source.sendSuccess(
-                                () ->
-                                    Component.literal(
-                                        "You do not have a partner yet"
-                                    ),
-                                false
+                            source.sendFailure(
+                                Component.literal(
+                                    "You do not have a partner yet"
+                                )
                             );
 
                             return 1;
@@ -243,6 +239,20 @@ public class Commands {
                         CommandSourceStack source = context.getSource();
                         ServerPlayer player = source.getPlayerOrException();
                         MinecraftServer server = source.getServer();
+
+                        if (
+                            !PartnerData.get(server).hasPartner(
+                                player.getUUID()
+                            )
+                        ) {
+                            source.sendFailure(
+                                Component.literal(
+                                    "You do not have a partner to remove"
+                                )
+                            );
+
+                            return 1;
+                        }
 
                         PartnerData.get(server).removePartner(player.getUUID());
 
