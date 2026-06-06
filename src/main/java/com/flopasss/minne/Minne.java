@@ -1,7 +1,7 @@
 package com.flopasss.minne;
 
 import com.flopasss.minne.command.Commands;
-import com.flopasss.minne.event.TickEvent;
+import com.flopasss.minne.event.EndServerTickEvent;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import org.slf4j.Logger;
@@ -19,7 +19,7 @@ public class Minne implements ModInitializer {
                 Commands.register(dispatcher)
         );
 
-        TickEvent.init();
+        EndServerTickEvent.init();
 
         LOGGER.info("Minne initialized");
     }

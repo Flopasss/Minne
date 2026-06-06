@@ -2,7 +2,7 @@ package com.flopasss.minne.event;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
-public class TickEvent {
+public class EndServerTickEvent {
 
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
