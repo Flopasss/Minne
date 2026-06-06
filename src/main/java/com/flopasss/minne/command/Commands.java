@@ -1,12 +1,17 @@
 package com.flopasss.minne.command;
 
+import static net.minecraft.commands.Commands.LEVEL_GAMEMASTERS;
 import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.hasPermission;
 import static net.minecraft.commands.Commands.literal;
 
+import com.flopasss.minne.data.PartnerData;
 import com.mojang.brigadier.CommandDispatcher;
+import java.util.UUID;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 public class Commands {
@@ -60,6 +65,68 @@ public class Commands {
                         )
                     )
                 )
+                // Set a partner directly without a request, but clear both players' current partners first
+                .then(
+                    literal("set")
+                        // Only allow server operators to use this command, since it can be used to bypass the request
+                        .requires(hasPermission(LEVEL_GAMEMASTERS))
+                        .then(
+                            argument(
+                                "player",
+                                EntityArgument.player()
+                            ).executes(context -> {
+                                ServerPlayer target = EntityArgument.getPlayer(
+                                    context,
+                                    "player"
+                                );
+
+                                CommandSourceStack source = context.getSource();
+                                ServerPlayer player =
+                                    source.getPlayerOrException();
+                                MinecraftServer server = source.getServer();
+
+                                if (player.getUUID().equals(target.getUUID())) {
+                                    source.sendSuccess(
+                                        () ->
+                                            Component.literal(
+                                                "You cannot be your own partner"
+                                            ),
+                                        false
+                                    );
+
+                                    return 1;
+                                }
+
+                                PartnerData.get(server).removePartner(
+                                    player.getUUID()
+                                );
+                                PartnerData.get(server).removePartner(
+                                    target.getUUID()
+                                );
+
+                                PartnerData.get(server).setPartner(
+                                    player.getUUID(),
+                                    target.getUUID()
+                                );
+
+                                context
+                                    .getSource()
+                                    .sendSuccess(
+                                        () ->
+                                            Component.literal(
+                                                "You and " +
+                                                    target
+                                                        .getName()
+                                                        .getString() +
+                                                    " are now partners"
+                                            ),
+                                        false
+                                    );
+
+                                return 1;
+                            })
+                        )
+                )
                 // Accept a partner request from any online player
                 .then(
                     literal("accept").then(
@@ -71,7 +138,7 @@ public class Commands {
                                     "player"
                                 );
 
-                                // TODO: Partner saving system
+                                // TODO: Accept system
 
                                 context
                                     .getSource()
@@ -127,11 +194,15 @@ public class Commands {
                 // Show your current partner
                 .then(
                     literal("show").executes(context -> {
-                        // TODO: Get current partner from partner saving system
+                        CommandSourceStack source = context.getSource();
+                        ServerPlayer player = source.getPlayerOrException();
+                        MinecraftServer server = source.getServer();
 
-                        context
-                            .getSource()
-                            .sendSuccess(
+                        UUID partnerUUID = PartnerData.get(server).getPartner(
+                            player.getUUID()
+                        );
+                        if (partnerUUID == null) {
+                            source.sendSuccess(
                                 () ->
                                     Component.literal(
                                         "You do not have a partner yet"
@@ -139,14 +210,41 @@ public class Commands {
                                 false
                             );
 
+                            return 1;
+                        }
+
+                        ServerPlayer partner = server
+                            .getPlayerList()
+                            .getPlayer(partnerUUID);
+                        boolean partnerOnline = partner != null;
+                        String partnerName = partnerOnline
+                            ? partner.getName().getString()
+                            : partnerUUID.toString();
+
+                        source.sendSuccess(
+                            () ->
+                                Component.literal(
+                                    "Your partner is " +
+                                        (partnerOnline
+                                            ? partnerName
+                                            : "currently offline (UUID: " +
+                                                  partnerName +
+                                                  ")")
+                                ),
+                            false
+                        );
+
                         return 1;
                     })
                 )
                 // Remove your current partner
                 .then(
                     literal("remove").executes(context -> {
-                        // TODO: "Are you sure?" question system
-                        // TODO: Remove current partner from partner saving system
+                        CommandSourceStack source = context.getSource();
+                        ServerPlayer player = source.getPlayerOrException();
+                        MinecraftServer server = source.getServer();
+
+                        PartnerData.get(server).removePartner(player.getUUID());
 
                         context
                             .getSource()
