@@ -191,7 +191,6 @@ public class Commands {
                 // Accept a partner request from any online player
                 .then(
                     literal("accept").then(
-                        // TODO: Only show players that have sent you a request
                         argument("player", EntityArgument.player())
                             .suggests((context, builder) -> {
                                 try {
@@ -319,9 +318,32 @@ public class Commands {
                 // Deny a partner request from any online player
                 .then(
                     literal("deny").then(
-                        // TODO: Only show players that have sent you a request
-                        argument("player", EntityArgument.player()).executes(
-                            context -> {
+                        argument("player", EntityArgument.player())
+                            .suggests((context, builder) -> {
+                                try {
+                                    CommandSourceStack source =
+                                        context.getSource();
+                                    ServerPlayer player =
+                                        source.getPlayerOrException();
+                                    MinecraftServer server = source.getServer();
+
+                                    PendingRequests.getRequestersFor(
+                                        player.getUUID()
+                                    )
+                                        .stream()
+                                        .map(uuid ->
+                                            server
+                                                .getPlayerList()
+                                                .getPlayer(uuid)
+                                        )
+                                        .filter(Objects::nonNull)
+                                        .map(p -> p.getName().getString())
+                                        .forEach(builder::suggest);
+                                } catch (CommandSyntaxException ignored) {}
+
+                                return builder.buildFuture();
+                            })
+                            .executes(context -> {
                                 ServerPlayer target = EntityArgument.getPlayer(
                                     context,
                                     "player"
@@ -379,8 +401,7 @@ public class Commands {
                                 );
 
                                 return 1;
-                            }
-                        )
+                            })
                     )
                 )
                 // Show your current partner
