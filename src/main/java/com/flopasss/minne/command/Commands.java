@@ -105,7 +105,75 @@ public class Commands {
                                     "player"
                                 );
 
-                                // TODO: Request system
+                                CommandSourceStack source = context.getSource();
+                                ServerPlayer player =
+                                    source.getPlayerOrException();
+                                MinecraftServer server = source.getServer();
+
+                                if (player.getUUID().equals(target.getUUID())) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            "You cannot ask yourself to be your partner"
+                                        )
+                                    );
+
+                                    return 1;
+                                }
+
+                                if (
+                                    PartnerData.get(server).hasPartner(
+                                        player.getUUID()
+                                    )
+                                ) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            "You already have a partner"
+                                        )
+                                    );
+
+                                    return 1;
+                                }
+
+                                if (
+                                    PartnerData.get(server).hasPartner(
+                                        target.getUUID()
+                                    )
+                                ) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            target.getName().getString() +
+                                                " already has a partner"
+                                        )
+                                    );
+
+                                    return 1;
+                                }
+
+                                UUID previousTarget = PendingRequests.add(
+                                    player.getUUID(),
+                                    target.getUUID()
+                                );
+
+                                if (previousTarget != null) {
+                                    ServerPlayer previousPlayer = server
+                                        .getPlayerList()
+                                        .getPlayer(previousTarget);
+                                    if (
+                                        previousPlayer != null
+                                    ) previousPlayer.sendSystemMessage(
+                                        Component.literal(
+                                            player.getName().getString() +
+                                                " withdrew their partner request"
+                                        )
+                                    );
+                                }
+
+                                target.sendSystemMessage(
+                                    Component.literal(
+                                        player.getName().getString() +
+                                            " wants to be your partner"
+                                    )
+                                );
 
                                 context
                                     .getSource()
