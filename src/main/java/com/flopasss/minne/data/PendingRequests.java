@@ -1,6 +1,7 @@
 package com.flopasss.minne.data;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -48,6 +49,19 @@ public class PendingRequests {
      */
     public static @Nullable UUID removeByRequester(UUID requester) {
         return requests.remove(requester);
+    }
+
+    /**
+     * Returns all UUIDs that have sent a request to the given target.
+     * Used to populate tab-complete suggestions for /partner accept and /partner deny.
+     */
+    public static List<UUID> getRequestersFor(UUID target) {
+        return requests
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue().equals(target))
+            .map(Map.Entry::getKey)
+            .toList();
     }
 
     // -------------------------------------------------------------------------

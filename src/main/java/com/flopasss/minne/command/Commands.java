@@ -8,6 +8,8 @@ import static net.minecraft.commands.Commands.literal;
 import com.flopasss.minne.data.PartnerData;
 import com.flopasss.minne.data.PendingRequests;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import java.util.Objects;
 import java.util.UUID;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -77,19 +79,15 @@ public class Commands {
                                     target.getUUID()
                                 );
 
-                                context
-                                    .getSource()
-                                    .sendSuccess(
-                                        () ->
-                                            Component.literal(
-                                                "You and " +
-                                                    target
-                                                        .getName()
-                                                        .getString() +
-                                                    " are now partners"
-                                            ),
-                                        false
-                                    );
+                                source.sendSuccess(
+                                    () ->
+                                        Component.literal(
+                                            "You and " +
+                                                target.getName().getString() +
+                                                " are now partners"
+                                        ),
+                                    false
+                                );
 
                                 return 1;
                             })
@@ -175,19 +173,15 @@ public class Commands {
                                     )
                                 );
 
-                                context
-                                    .getSource()
-                                    .sendSuccess(
-                                        () ->
-                                            Component.literal(
-                                                "You have asked " +
-                                                    target
-                                                        .getName()
-                                                        .getString() +
-                                                    " to be your partner"
-                                            ),
-                                        false
-                                    );
+                                source.sendSuccess(
+                                    () ->
+                                        Component.literal(
+                                            "You have asked " +
+                                                target.getName().getString() +
+                                                " to be your partner"
+                                        ),
+                                    false
+                                );
 
                                 return 1;
                             }
@@ -198,32 +192,128 @@ public class Commands {
                 .then(
                     literal("accept").then(
                         // TODO: Only show players that have sent you a request
-                        argument("player", EntityArgument.player()).executes(
-                            context -> {
+                        argument("player", EntityArgument.player())
+                            .suggests((context, builder) -> {
+                                try {
+                                    CommandSourceStack source =
+                                        context.getSource();
+                                    ServerPlayer player =
+                                        source.getPlayerOrException();
+                                    MinecraftServer server = source.getServer();
+
+                                    PendingRequests.getRequestersFor(
+                                        player.getUUID()
+                                    )
+                                        .stream()
+                                        .map(uuid ->
+                                            server
+                                                .getPlayerList()
+                                                .getPlayer(uuid)
+                                        )
+                                        .filter(Objects::nonNull)
+                                        .map(p -> p.getName().getString())
+                                        .forEach(builder::suggest);
+                                } catch (CommandSyntaxException ignored) {}
+
+                                return builder.buildFuture();
+                            })
+                            .executes(context -> {
                                 ServerPlayer target = EntityArgument.getPlayer(
                                     context,
                                     "player"
                                 );
 
-                                // TODO: Accept system
+                                CommandSourceStack source = context.getSource();
+                                ServerPlayer player =
+                                    source.getPlayerOrException();
+                                MinecraftServer server = source.getServer();
 
-                                context
-                                    .getSource()
-                                    .sendSuccess(
-                                        () ->
-                                            Component.literal(
-                                                "You and " +
-                                                    target
-                                                        .getName()
-                                                        .getString() +
-                                                    " are now partners"
-                                            ),
-                                        false
+                                if (player.getUUID().equals(target.getUUID())) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            "You cannot accept yourself to be your partner"
+                                        )
                                     );
 
+                                    return 1;
+                                }
+
+                                if (
+                                    PartnerData.get(server).hasPartner(
+                                        player.getUUID()
+                                    )
+                                ) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            "You already have a partner"
+                                        )
+                                    );
+
+                                    return 1;
+                                }
+
+                                if (
+                                    !PendingRequests.hasRequest(
+                                        target.getUUID(),
+                                        player.getUUID()
+                                    )
+                                ) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            "You do not have a partner request from " +
+                                                target.getName().getString()
+                                        )
+                                    );
+
+                                    return 1;
+                                }
+
+                                if (
+                                    PartnerData.get(server).hasPartner(
+                                        target.getUUID()
+                                    )
+                                ) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            target.getName().getString() +
+                                                " already has a partner"
+                                        )
+                                    );
+
+                                    return 1;
+                                }
+
+                                PendingRequests.removeByRequester(
+                                    target.getUUID()
+                                );
+                                PendingRequests.removeByRequester(
+                                    player.getUUID()
+                                );
+
+                                PartnerData.get(server).setPartner(
+                                    player.getUUID(),
+                                    target.getUUID()
+                                );
+
+                                target.sendSystemMessage(
+                                    Component.literal(
+                                        player.getName().getString() +
+                                            " accepted your partner request"
+                                    )
+                                );
+
+                                source.sendSuccess(
+                                    () ->
+                                        Component.literal(
+                                            "You and " +
+                                                target.getName().getString() +
+                                                " are now partners"
+                                        ),
+                                    false
+                                );
+
                                 return 1;
-                            }
-                        )
+                            })
                     )
                 )
                 // Deny a partner request from any online player
@@ -237,21 +327,56 @@ public class Commands {
                                     "player"
                                 );
 
-                                // TODO: Deny system
+                                CommandSourceStack source = context.getSource();
+                                ServerPlayer player =
+                                    source.getPlayerOrException();
 
-                                context
-                                    .getSource()
-                                    .sendSuccess(
-                                        () ->
-                                            Component.literal(
-                                                "You denied " +
-                                                    target
-                                                        .getName()
-                                                        .getString() +
-                                                    "'s request to be your partner"
-                                            ),
-                                        false
+                                if (player.getUUID().equals(target.getUUID())) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            "You cannot deny yourself to be your partner"
+                                        )
                                     );
+
+                                    return 1;
+                                }
+
+                                if (
+                                    !PendingRequests.hasRequest(
+                                        target.getUUID(),
+                                        player.getUUID()
+                                    )
+                                ) {
+                                    source.sendFailure(
+                                        Component.literal(
+                                            "You do not have a partner request from " +
+                                                target.getName().getString()
+                                        )
+                                    );
+
+                                    return 1;
+                                }
+
+                                PendingRequests.removeByRequester(
+                                    target.getUUID()
+                                );
+
+                                target.sendSystemMessage(
+                                    Component.literal(
+                                        player.getName().getString() +
+                                            " denied your partner request"
+                                    )
+                                );
+
+                                source.sendSuccess(
+                                    () ->
+                                        Component.literal(
+                                            "You denied " +
+                                                target.getName().getString() +
+                                                "'s request to be your partner"
+                                        ),
+                                    false
+                                );
 
                                 return 1;
                             }
@@ -325,15 +450,30 @@ public class Commands {
 
                         PartnerData.get(server).removePartner(player.getUUID());
 
-                        context
-                            .getSource()
-                            .sendSuccess(
-                                () ->
-                                    Component.literal(
-                                        "You removed your current partner"
-                                    ),
-                                false
+                        UUID partnerUUID = PartnerData.get(server).getPartner(
+                            player.getUUID()
+                        );
+                        PartnerData.get(server).removePartner(player.getUUID());
+
+                        ServerPlayer partner = server
+                            .getPlayerList()
+                            .getPlayer(partnerUUID);
+                        if (partner != null) {
+                            partner.sendSystemMessage(
+                                Component.literal(
+                                    player.getName().getString() +
+                                        " removed you as their partner"
+                                )
                             );
+                        }
+
+                        source.sendSuccess(
+                            () ->
+                                Component.literal(
+                                    "You removed your current partner"
+                                ),
+                            false
+                        );
 
                         return 1;
                     })
