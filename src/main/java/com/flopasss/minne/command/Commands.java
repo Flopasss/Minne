@@ -6,6 +6,7 @@ import static net.minecraft.commands.Commands.hasPermission;
 import static net.minecraft.commands.Commands.literal;
 
 import com.flopasss.minne.data.PartnerData;
+import com.flopasss.minne.data.PendingRequests;
 import com.mojang.brigadier.CommandDispatcher;
 import java.util.UUID;
 import net.minecraft.commands.CommandSourceStack;
@@ -34,37 +35,6 @@ public class Commands {
 
                     return 1;
                 })
-                // Ask any online player to be your partner
-                .then(
-                    literal("ask").then(
-                        argument("player", EntityArgument.player()).executes(
-                            context -> {
-                                ServerPlayer target = EntityArgument.getPlayer(
-                                    context,
-                                    "player"
-                                );
-
-                                // TODO: Request system
-
-                                context
-                                    .getSource()
-                                    .sendSuccess(
-                                        () ->
-                                            Component.literal(
-                                                "You have asked " +
-                                                    target
-                                                        .getName()
-                                                        .getString() +
-                                                    " to be your partner"
-                                            ),
-                                        false
-                                    );
-
-                                return 1;
-                            }
-                        )
-                    )
-                )
                 // Set a partner directly without a request, but clear both players' current partners first
                 .then(
                     literal("set")
@@ -124,6 +94,37 @@ public class Commands {
                                 return 1;
                             })
                         )
+                )
+                // Ask any online player to be your partner
+                .then(
+                    literal("ask").then(
+                        argument("player", EntityArgument.player()).executes(
+                            context -> {
+                                ServerPlayer target = EntityArgument.getPlayer(
+                                    context,
+                                    "player"
+                                );
+
+                                // TODO: Request system
+
+                                context
+                                    .getSource()
+                                    .sendSuccess(
+                                        () ->
+                                            Component.literal(
+                                                "You have asked " +
+                                                    target
+                                                        .getName()
+                                                        .getString() +
+                                                    " to be your partner"
+                                            ),
+                                        false
+                                    );
+
+                                return 1;
+                            }
+                        )
+                    )
                 )
                 // Accept a partner request from any online player
                 .then(
