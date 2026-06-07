@@ -1,8 +1,6 @@
 package com.flopasss.minne.command;
 
-import static net.minecraft.commands.Commands.LEVEL_GAMEMASTERS;
 import static net.minecraft.commands.Commands.argument;
-import static net.minecraft.commands.Commands.hasPermission;
 import static net.minecraft.commands.Commands.literal;
 
 import com.flopasss.minne.data.PartnerData;
@@ -37,62 +35,6 @@ public class Commands {
 
                     return 1;
                 })
-                // Set a partner directly without a request, but clear both players' current partners first
-                .then(
-                    literal("set")
-                        // Only allow server operators to use this command, since it can be used to bypass the request
-                        .requires(hasPermission(LEVEL_GAMEMASTERS))
-                        .then(
-                            argument(
-                                "player",
-                                EntityArgument.player()
-                            ).executes(context -> {
-                                ServerPlayer target = EntityArgument.getPlayer(
-                                    context,
-                                    "player"
-                                );
-
-                                CommandSourceStack source = context.getSource();
-                                ServerPlayer player =
-                                    source.getPlayerOrException();
-                                MinecraftServer server = source.getServer();
-
-                                if (player.getUUID().equals(target.getUUID())) {
-                                    source.sendFailure(
-                                        Component.literal(
-                                            "You cannot be your own partner"
-                                        )
-                                    );
-
-                                    return 1;
-                                }
-
-                                PartnerData.get(server).removePartner(
-                                    player.getUUID()
-                                );
-                                PartnerData.get(server).removePartner(
-                                    target.getUUID()
-                                );
-
-                                PartnerData.get(server).setPartner(
-                                    player.getUUID(),
-                                    target.getUUID()
-                                );
-
-                                source.sendSuccess(
-                                    () ->
-                                        Component.literal(
-                                            "You and " +
-                                                target.getName().getString() +
-                                                " are now partners"
-                                        ),
-                                    false
-                                );
-
-                                return 1;
-                            })
-                        )
-                )
                 // Ask any online player to be your partner
                 .then(
                     literal("ask").then(
