@@ -48,9 +48,24 @@ public class EndServerTickEvent {
 
                 if (player.distanceTo(partner) > config.distance) continue;
 
-                Vec3 mid = player
-                    .getEyePosition()
-                    .lerp(partner.getEyePosition(), 0.5);
+                Vec3 eyeA = player.getEyePosition();
+                Vec3 eyeB = partner.getEyePosition();
+
+                if (config.requireLooking) {
+                    Vec3 dirAtoB = eyeB.subtract(eyeA).normalize();
+                    Vec3 dirBtoA = eyeA.subtract(eyeB).normalize();
+
+                    double threshold = Math.cos(
+                        Math.toRadians(config.toleranceDegrees)
+                    );
+
+                    if (
+                        !(player.getLookAngle().dot(dirAtoB) >= threshold &&
+                            partner.getLookAngle().dot(dirBtoA) >= threshold)
+                    ) continue;
+                }
+
+                Vec3 mid = eyeA.lerp(eyeB, 0.5);
 
                 player
                     .level()
