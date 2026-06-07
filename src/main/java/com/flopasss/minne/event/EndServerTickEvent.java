@@ -13,14 +13,16 @@ import net.minecraft.world.phys.Vec3;
 
 public class EndServerTickEvent {
 
+    private static final Set<UUID> processed = new HashSet<>();
+
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             Config config = Minne.CONFIG;
             if (!config.enabled) return;
             if (server.getTickCount() % config.interval != 0) return;
 
+            processed.clear();
             PartnerData data = PartnerData.get(server);
-            Set<UUID> processed = new HashSet<>();
 
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 UUID uuid = player.getUUID();
@@ -55,13 +57,11 @@ public class EndServerTickEvent {
                     Vec3 dirAtoB = eyeB.subtract(eyeA).normalize();
                     Vec3 dirBtoA = eyeA.subtract(eyeB).normalize();
 
-                    double threshold = Math.cos(
-                        Math.toRadians(config.toleranceDegrees)
-                    );
-
                     if (
-                        !(player.getLookAngle().dot(dirAtoB) >= threshold &&
-                            partner.getLookAngle().dot(dirBtoA) >= threshold)
+                        !(player.getLookAngle().dot(dirAtoB) >=
+                                config.toleranceCosine &&
+                            partner.getLookAngle().dot(dirBtoA) >=
+                                config.toleranceCosine)
                     ) continue;
                 }
 
@@ -71,8 +71,6 @@ public class EndServerTickEvent {
                     .level()
                     .sendParticles(
                         ParticleTypes.HEART.getType(),
-                        false,
-                        true,
                         mid.x,
                         mid.y,
                         mid.z,

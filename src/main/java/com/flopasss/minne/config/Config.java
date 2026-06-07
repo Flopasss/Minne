@@ -20,6 +20,7 @@ public class Config {
     public float spread = 0.0f; // By default, the particles are spread out with a radius of 0.0
     public float speed = 0.0f; // By default, the particles have 0.0 speed, which is the default speed for particles in Minecraft
     public float toleranceDegrees = 45.0f; // By default, partners must be facing each other within a 45 degree angle to spawn particles
+    public transient double toleranceCosine;
 
     // Gson instance for serializing and deserializing the config file, with pretty printing enabled for easier readability
     private static final Gson GSON = new GsonBuilder()
@@ -34,6 +35,7 @@ public class Config {
         // If the config file doesn't exist, create it with default values and return a new config instance
         if (!Files.exists(CONFIG_PATH)) {
             Config defaultConfig = new Config();
+            defaultConfig.resolve();
             defaultConfig.save();
             return defaultConfig;
         }
@@ -46,19 +48,19 @@ public class Config {
             );
 
             // If deserialization fails and returns null, return a new config instance with default values
-            if (config == null) return new Config();
+            if (config == null) return new Config().resolve();
 
             // Save the config to ensure that any missing fields are added to the config file with their default values, this is especially useful when new fields are added in future updates, as it will automatically update existing config files without losing user settings
             config.save();
 
             // If the config file is loaded successfully, return the loaded config instance
-            return config;
+            return config.resolve();
         } catch (Exception e) {
             // If there's an error reading or deserializing the config file, log the error
             Minne.LOGGER.warn("Failed to load config, using default values", e);
 
             // If there's an error, return a new config instance with default values
-            return new Config();
+            return new Config().resolve();
         }
     }
 
@@ -70,5 +72,10 @@ public class Config {
             // If there's an error writing the config file, log the error
             Minne.LOGGER.error("Failed to save config", e);
         }
+    }
+
+    public Config resolve() {
+        toleranceCosine = Math.cos(Math.toRadians(toleranceDegrees));
+        return this;
     }
 }
