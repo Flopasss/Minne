@@ -15,7 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
-public class Commands {
+public class PlayerCommands {
 
     public static void register(
         CommandDispatcher<CommandSourceStack> dispatcher

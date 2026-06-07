@@ -1,6 +1,7 @@
 package com.flopasss.minne;
 
-import com.flopasss.minne.command.Commands;
+import com.flopasss.minne.command.OperatorCommands;
+import com.flopasss.minne.command.PlayerCommands;
 import com.flopasss.minne.config.Config;
 import com.flopasss.minne.event.EndServerTickEvent;
 import net.fabricmc.api.ModInitializer;
@@ -19,8 +20,10 @@ public class Minne implements ModInitializer {
         CONFIG = Config.load();
 
         CommandRegistrationCallback.EVENT.register(
-            (dispatcher, registryAccess, environment) ->
-                Commands.register(dispatcher)
+            (dispatcher, registryAccess, environment) -> {
+                OperatorCommands.register(dispatcher);
+                PlayerCommands.register(dispatcher);
+            }
         );
 
         EndServerTickEvent.init();
