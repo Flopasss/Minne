@@ -11,15 +11,15 @@ public class Config {
 
     // Base Minne options
     public boolean enabled = true; // By default, the mod is enabled
-    public int interval = 20; // By default, the mod checks for partners every 20 ticks (1 second)
     public boolean requireSneaking = true; // By default, both partners must be sneaking to spawn particles
     public boolean requireVisible = true; // By default, if either partner is invisible, particles will not spawn
     public boolean requireLooking = true; // By default, partners must be looking at each other to spawn particles
-    public float distance = 2.0f; // By default, partners must be within 2.0 blocks of each other to spawn particles
-    public float toleranceDegrees = 45.0f; // By default, partners must be facing each other within a 45 degree angle to spawn particles
+    public int interval = 20; // By default, the mod checks for partners every 20 ticks (1 second)
     public int count = 1; // By default, the mod spawns 1 heart particle
+    public float distance = 2.0f; // By default, partners must be within 2.0 blocks of each other to spawn particles
     public float spread = 0.0f; // By default, the particles are spread out with a radius of 0.0
     public float speed = 0.0f; // By default, the particles have 0.0 speed, which is the default speed for particles in Minecraft
+    public float toleranceDegrees = 45.0f; // By default, partners must be facing each other within a 45 degree angle to spawn particles
 
     // Gson instance for serializing and deserializing the config file, with pretty printing enabled for easier readability
     private static final Gson GSON = new GsonBuilder()
