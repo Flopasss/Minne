@@ -1,5 +1,7 @@
 package com.flopasss.minne.event;
 
+import com.flopasss.minne.Minne;
+import com.flopasss.minne.config.Config;
 import com.flopasss.minne.data.PartnerData;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,7 +15,9 @@ public class EndServerTickEvent {
 
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (server.getTickCount() % 20 != 0) return;
+            Config config = Minne.CONFIG;
+            if (!config.enabled) return;
+            if (server.getTickCount() % config.interval != 0) return;
 
             PartnerData data = PartnerData.get(server);
             Set<UUID> processed = new HashSet<>();
@@ -31,10 +35,18 @@ public class EndServerTickEvent {
                 if (partner == null) continue;
 
                 if (
-                    !player.isShiftKeyDown() || !partner.isShiftKeyDown()
+                    config.requireVisible &&
+                    (player.isInvisible() || partner.isInvisible())
                 ) continue;
+
+                if (
+                    config.requireSneaking &&
+                    (!player.isShiftKeyDown() || !partner.isShiftKeyDown())
+                ) continue;
+
                 if (player.level() != partner.level()) continue;
-                if (player.distanceTo(partner) > 2.0f) continue;
+
+                if (player.distanceTo(partner) > config.distance) continue;
 
                 Vec3 mid = player
                     .getEyePosition()
@@ -49,11 +61,11 @@ public class EndServerTickEvent {
                         mid.x,
                         mid.y,
                         mid.z,
-                        1,
-                        0.1,
-                        0.1,
-                        0.1,
-                        0.0
+                        config.count,
+                        config.spread,
+                        config.spread,
+                        config.spread,
+                        config.speed
                     );
 
                 processed.add(uuid);
