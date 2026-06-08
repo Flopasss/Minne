@@ -37,7 +37,7 @@ public class PlayerCommands {
                 })
                 // Ask any online player to be your partner
                 .then(
-                    literal("ask").then(
+                    literal("request").then(
                         argument("player", EntityArgument.player()).executes(
                             context -> {
                                 ServerPlayer target = EntityArgument.getPlayer(
