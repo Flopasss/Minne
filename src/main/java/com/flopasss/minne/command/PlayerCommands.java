@@ -13,6 +13,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -195,12 +196,57 @@ public class PlayerCommands {
                                     }
                                 }
 
+                                String requesterName = player
+                                    .getName()
+                                    .getString();
+
                                 target.sendSystemMessage(
                                     Component.literal(
                                         PREFIX +
-                                            player.getName().getString() +
-                                            " wants to be your partner"
+                                            requesterName +
+                                            " wants to be your partner§r "
                                     )
+                                        .append(
+                                            Component.literal(
+                                                "§a§l[Accept]§r"
+                                            ).withStyle(style ->
+                                                style
+                                                    .withClickEvent(
+                                                        new ClickEvent.RunCommand(
+                                                            "/partner accept " +
+                                                                requesterName
+                                                        )
+                                                    )
+                                                    .withHoverEvent(
+                                                        new HoverEvent.ShowText(
+                                                            Component.literal(
+                                                                "§aClick to accept"
+                                                            )
+                                                        )
+                                                    )
+                                            )
+                                        )
+                                        .append(Component.literal(" "))
+                                        .append(
+                                            Component.literal(
+                                                "§c§l[Deny]§r"
+                                            ).withStyle(style ->
+                                                style
+                                                    .withClickEvent(
+                                                        new ClickEvent.RunCommand(
+                                                            "/partner deny " +
+                                                                requesterName
+                                                        )
+                                                    )
+                                                    .withHoverEvent(
+                                                        new HoverEvent.ShowText(
+                                                            Component.literal(
+                                                                "§cClick to deny"
+                                                            )
+                                                        )
+                                                    )
+                                            )
+                                        )
                                 );
 
                                 source.sendSuccess(
