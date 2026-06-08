@@ -150,6 +150,54 @@ public class PlayerCommands {
                         )
                     )
                 )
+                // Cancel your current partner request
+                .then(
+                    literal("cancel").executes(context -> {
+                        CommandSourceStack source = context.getSource();
+                        ServerPlayer player = source.getPlayerOrException();
+                        MinecraftServer server = source.getServer();
+
+                        UUID previousTarget = PendingRequests.removeByRequester(
+                            player.getUUID()
+                        );
+
+                        if (previousTarget == null) {
+                            source.sendFailure(
+                                Component.literal(
+                                    PREFIX +
+                                        "You do not have a pending partner request to cancel"
+                                )
+                            );
+
+                            return 1;
+                        }
+
+                        ServerPlayer previousPlayer = server
+                            .getPlayerList()
+                            .getPlayer(previousTarget);
+                        if (
+                            previousPlayer != null
+                        ) previousPlayer.sendSystemMessage(
+                            Component.literal(
+                                PREFIX +
+                                    player.getName().getString() +
+                                    " withdrew their partner request"
+                            )
+                        );
+
+                        source.sendSuccess(
+                            () ->
+                                Component.literal(
+                                    PREFIX +
+                                        "You withdrew your partner request to " +
+                                        previousPlayer.getName().getString()
+                                ),
+                            false
+                        );
+
+                        return 1;
+                    })
+                )
                 // Accept a partner request from any online player
                 .then(
                     literal("accept").then(
