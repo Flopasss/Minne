@@ -11,7 +11,9 @@ import java.util.Objects;
 import java.util.UUID;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -25,22 +27,89 @@ public class PlayerCommands {
         dispatcher.register(
             literal("partner")
                 .executes(context -> {
-                    context
-                        .getSource()
-                        .sendSuccess(
-                            () ->
-                                Component.literal(
-                                    PREFIX +
-                                        "Ask anyone online to become your partner"
-                                ),
-                            false
+                    MutableComponent helpMessage = Component.literal(
+                        PREFIX + "§lMinne Partner Mod§r\n"
+                    )
+                        .append(
+                            Component.literal(
+                                "§7Get close to your partner, sneak, and look at each other to share hearts!§r\n\n"
+                            )
+                        )
+
+                        // Clickable command suggestions
+                        .append(
+                            Component.literal(
+                                "§e/partner invite <player>§r §7- Send a partner request\n"
+                            ).withStyle(s ->
+                                s.withClickEvent(
+                                    new ClickEvent.SuggestCommand(
+                                        "/partner invite "
+                                    )
+                                )
+                            )
+                        )
+                        .append(
+                            Component.literal(
+                                "§e/partner cancel§r §7- Cancel your outgoing request\n"
+                            ).withStyle(s ->
+                                s.withClickEvent(
+                                    new ClickEvent.SuggestCommand(
+                                        "/partner cancel"
+                                    )
+                                )
+                            )
+                        )
+                        .append(
+                            Component.literal(
+                                "§e/partner accept <player>§r §7- Accept a request\n"
+                            ).withStyle(s ->
+                                s.withClickEvent(
+                                    new ClickEvent.SuggestCommand(
+                                        "/partner accept "
+                                    )
+                                )
+                            )
+                        )
+                        .append(
+                            Component.literal(
+                                "§e/partner deny <player>§r §7- Deny a request\n"
+                            ).withStyle(s ->
+                                s.withClickEvent(
+                                    new ClickEvent.SuggestCommand(
+                                        "/partner deny "
+                                    )
+                                )
+                            )
+                        )
+                        .append(
+                            Component.literal(
+                                "§e/partner status§r §7- See who your partner is\n"
+                            ).withStyle(s ->
+                                s.withClickEvent(
+                                    new ClickEvent.SuggestCommand(
+                                        "/partner status"
+                                    )
+                                )
+                            )
+                        )
+                        .append(
+                            Component.literal(
+                                "§e/partner remove§r §7- End your current partnership"
+                            ).withStyle(s ->
+                                s.withClickEvent(
+                                    new ClickEvent.SuggestCommand(
+                                        "/partner remove"
+                                    )
+                                )
+                            )
                         );
 
+                    context.getSource().sendSuccess(() -> helpMessage, false);
                     return 1;
                 })
                 // Ask any online player to be your partner
                 .then(
-                    literal("request").then(
+                    literal("invite").then(
                         argument("player", EntityArgument.player()).executes(
                             context -> {
                                 ServerPlayer target = EntityArgument.getPlayer(
@@ -426,7 +495,7 @@ public class PlayerCommands {
                 )
                 // Show your current partner
                 .then(
-                    literal("show").executes(context -> {
+                    literal("status").executes(context -> {
                         CommandSourceStack source = context.getSource();
                         ServerPlayer player = source.getPlayerOrException();
                         MinecraftServer server = source.getServer();
