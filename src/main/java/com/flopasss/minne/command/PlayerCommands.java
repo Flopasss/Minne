@@ -17,6 +17,8 @@ import net.minecraft.server.level.ServerPlayer;
 
 public class PlayerCommands {
 
+    public static final String PREFIX = "§d🖤§r ";
+
     public static void register(
         CommandDispatcher<CommandSourceStack> dispatcher
     ) {
@@ -28,7 +30,8 @@ public class PlayerCommands {
                         .sendSuccess(
                             () ->
                                 Component.literal(
-                                    "Ask anyone online to become your partner"
+                                    PREFIX +
+                                        "Ask anyone online to become your partner"
                                 ),
                             false
                         );
@@ -53,7 +56,8 @@ public class PlayerCommands {
                                 if (player.getUUID().equals(target.getUUID())) {
                                     source.sendFailure(
                                         Component.literal(
-                                            "You cannot ask yourself to be your partner"
+                                            PREFIX +
+                                                "You cannot ask yourself to be your partner"
                                         )
                                     );
 
@@ -67,7 +71,8 @@ public class PlayerCommands {
                                 ) {
                                     source.sendFailure(
                                         Component.literal(
-                                            "You already have a partner"
+                                            PREFIX +
+                                                "You already have a partner"
                                         )
                                     );
 
@@ -81,7 +86,8 @@ public class PlayerCommands {
                                 ) {
                                     source.sendFailure(
                                         Component.literal(
-                                            target.getName().getString() +
+                                            PREFIX +
+                                                target.getName().getString() +
                                                 " already has a partner"
                                         )
                                     );
@@ -98,19 +104,32 @@ public class PlayerCommands {
                                     ServerPlayer previousPlayer = server
                                         .getPlayerList()
                                         .getPlayer(previousTarget);
-                                    if (
-                                        previousPlayer != null
-                                    ) previousPlayer.sendSystemMessage(
-                                        Component.literal(
-                                            player.getName().getString() +
-                                                " withdrew their partner request"
-                                        )
-                                    );
+                                    if (previousPlayer != null) {
+                                        previousPlayer.sendSystemMessage(
+                                            Component.literal(
+                                                PREFIX +
+                                                    player
+                                                        .getName()
+                                                        .getString() +
+                                                    " withdrew their partner request"
+                                            )
+                                        );
+                                        player.sendSystemMessage(
+                                            Component.literal(
+                                                PREFIX +
+                                                    "You withdrew your previous partner request to " +
+                                                    previousPlayer
+                                                        .getName()
+                                                        .getString()
+                                            )
+                                        );
+                                    }
                                 }
 
                                 target.sendSystemMessage(
                                     Component.literal(
-                                        player.getName().getString() +
+                                        PREFIX +
+                                            player.getName().getString() +
                                             " wants to be your partner"
                                     )
                                 );
@@ -118,7 +137,8 @@ public class PlayerCommands {
                                 source.sendSuccess(
                                     () ->
                                         Component.literal(
-                                            "You have asked " +
+                                            PREFIX +
+                                                "You have asked " +
                                                 target.getName().getString() +
                                                 " to be your partner"
                                         ),
@@ -172,7 +192,8 @@ public class PlayerCommands {
                                 if (player.getUUID().equals(target.getUUID())) {
                                     source.sendFailure(
                                         Component.literal(
-                                            "You cannot accept yourself to be your partner"
+                                            PREFIX +
+                                                "You cannot accept yourself to be your partner"
                                         )
                                     );
 
@@ -186,7 +207,8 @@ public class PlayerCommands {
                                 ) {
                                     source.sendFailure(
                                         Component.literal(
-                                            "You already have a partner"
+                                            PREFIX +
+                                                "You already have a partner"
                                         )
                                     );
 
@@ -201,7 +223,8 @@ public class PlayerCommands {
                                 ) {
                                     source.sendFailure(
                                         Component.literal(
-                                            "You do not have a partner request from " +
+                                            PREFIX +
+                                                "You do not have a partner request from " +
                                                 target.getName().getString()
                                         )
                                     );
@@ -216,7 +239,8 @@ public class PlayerCommands {
                                 ) {
                                     source.sendFailure(
                                         Component.literal(
-                                            target.getName().getString() +
+                                            PREFIX +
+                                                target.getName().getString() +
                                                 " already has a partner"
                                         )
                                     );
@@ -238,7 +262,8 @@ public class PlayerCommands {
 
                                 target.sendSystemMessage(
                                     Component.literal(
-                                        player.getName().getString() +
+                                        PREFIX +
+                                            player.getName().getString() +
                                             " accepted your partner request"
                                     )
                                 );
@@ -246,7 +271,8 @@ public class PlayerCommands {
                                 source.sendSuccess(
                                     () ->
                                         Component.literal(
-                                            "You and " +
+                                            PREFIX +
+                                                "You and " +
                                                 target.getName().getString() +
                                                 " are now partners"
                                         ),
@@ -298,7 +324,8 @@ public class PlayerCommands {
                                 if (player.getUUID().equals(target.getUUID())) {
                                     source.sendFailure(
                                         Component.literal(
-                                            "You cannot deny yourself to be your partner"
+                                            PREFIX +
+                                                "You cannot deny yourself to be your partner"
                                         )
                                     );
 
@@ -313,7 +340,8 @@ public class PlayerCommands {
                                 ) {
                                     source.sendFailure(
                                         Component.literal(
-                                            "You do not have a partner request from " +
+                                            PREFIX +
+                                                "You do not have a partner request from " +
                                                 target.getName().getString()
                                         )
                                     );
@@ -327,7 +355,8 @@ public class PlayerCommands {
 
                                 target.sendSystemMessage(
                                     Component.literal(
-                                        player.getName().getString() +
+                                        PREFIX +
+                                            player.getName().getString() +
                                             " denied your partner request"
                                     )
                                 );
@@ -335,7 +364,8 @@ public class PlayerCommands {
                                 source.sendSuccess(
                                     () ->
                                         Component.literal(
-                                            "You denied " +
+                                            PREFIX +
+                                                "You denied " +
                                                 target.getName().getString() +
                                                 "'s request to be your partner"
                                         ),
@@ -359,7 +389,7 @@ public class PlayerCommands {
                         if (partnerUUID == null) {
                             source.sendFailure(
                                 Component.literal(
-                                    "You do not have a partner yet"
+                                    PREFIX + "You do not have a partner yet"
                                 )
                             );
 
@@ -377,7 +407,8 @@ public class PlayerCommands {
                         source.sendSuccess(
                             () ->
                                 Component.literal(
-                                    "Your partner is " +
+                                    PREFIX +
+                                        "Your partner is " +
                                         (partnerOnline
                                             ? partnerName
                                             : "currently offline (UUID: " +
@@ -404,7 +435,8 @@ public class PlayerCommands {
                         ) {
                             source.sendFailure(
                                 Component.literal(
-                                    "You do not have a partner to remove"
+                                    PREFIX +
+                                        "You do not have a partner to remove"
                                 )
                             );
 
@@ -424,7 +456,8 @@ public class PlayerCommands {
                         if (partner != null) {
                             partner.sendSystemMessage(
                                 Component.literal(
-                                    player.getName().getString() +
+                                    PREFIX +
+                                        player.getName().getString() +
                                         " removed you as their partner"
                                 )
                             );
@@ -433,7 +466,7 @@ public class PlayerCommands {
                         source.sendSuccess(
                             () ->
                                 Component.literal(
-                                    "You removed your current partner"
+                                    PREFIX + "You removed your current partner"
                                 ),
                             false
                         );
