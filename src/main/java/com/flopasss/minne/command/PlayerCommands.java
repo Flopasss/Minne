@@ -591,11 +591,10 @@ public class PlayerCommands {
                         ServerPlayer player = source.getPlayerOrException();
                         MinecraftServer server = source.getServer();
 
-                        if (
-                            !PartnerData.get(server).hasPartner(
-                                player.getUUID()
-                            )
-                        ) {
+                        UUID partnerUUID = PartnerData.get(server).getPartner(
+                            player.getUUID()
+                        );
+                        if (partnerUUID == null) {
                             source.sendFailure(
                                 Component.literal(
                                     PREFIX +
@@ -606,11 +605,6 @@ public class PlayerCommands {
                             return 1;
                         }
 
-                        PartnerData.get(server).removePartner(player.getUUID());
-
-                        UUID partnerUUID = PartnerData.get(server).getPartner(
-                            player.getUUID()
-                        );
                         PartnerData.get(server).removePartner(player.getUUID());
 
                         ServerPlayer partner = server
